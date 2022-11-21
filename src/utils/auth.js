@@ -31,7 +31,9 @@ export function getAuthClient(config = {}) {
         scope: 'kure_app',
         // Margin of time before the current token expires that we should force a
         // token refresh.
-        expire_margin: 0
+        expire_margin: 0,
+        // User info storage name.
+        user_info: 'drupal-user-info'
     };
 
     // eslint-disable-next-line no-param-reassign
@@ -79,6 +81,12 @@ export function getAuthClient(config = {}) {
 
             if (response.status === 200) {
                 saveToken(data);
+                // Get username of current user and save it in local storage
+                await getCurrentUserProfile().then((profile) => {
+                    if (profile) {
+                        localStorage.setItem(config.user_info, profile.name);
+                    }
+                });
                 return true;
             }
 
@@ -98,7 +106,45 @@ export function getAuthClient(config = {}) {
      */
     function logout() {
         localStorage.removeItem(config.token_name);
+        localStorage.removeItem(config.user_info);
         return Promise.resolve(true);
+    }
+
+    function getUserName() {
+        return localStorage.getItem(config.user_info) !== null ? localStorage.getItem(config.user_info) : '';
+    }
+
+    /**
+     * Get current user profile.
+     *
+     * @returns {Promise<boolean>}
+     */
+    async function getCurrentUserProfile() {
+        try {
+            const response = await fetchWithAuthentication(`/me`, {
+                method: 'get',
+                headers: new Headers({
+                    Accept: 'application/json'
+                })
+            });
+            const current_user = await response.json();
+
+            if (response.status === 200) {
+                if (current_user[0] !== undefined) {
+                    return current_user[0];
+                } else {
+                    return false;
+                }
+            }
+
+            if (response.status !== 200) {
+                console.log('Error retrieving profile', current_user);
+                return false;
+            }
+        } catch (err) {
+            console.log('API got an error', err);
+        }
+        return false;
     }
 
     /**
@@ -221,5 +267,14 @@ export function getAuthClient(config = {}) {
             });
     }
 
-    return { debug, login, logout, isLoggedIn, fetchWithAuthentication, token: tokenCurrent, refreshToken: tokenRefresh };
+    return {
+        debug,
+        login,
+        logout,
+        getUserName,
+        isLoggedIn,
+        fetchWithAuthentication,
+        token: tokenCurrent,
+        refreshToken: tokenRefresh
+    };
 }

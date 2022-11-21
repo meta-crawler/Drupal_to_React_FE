@@ -13,15 +13,15 @@ const auth = getAuthClient();
 const App = () => {
     const navigate = useNavigate();
 
-    // useEffect(() => {
-    //     auth.isLoggedIn()
-    //         .then(() => {
-    //             // navigate('/dashboard/default');
-    //         })
-    //         .catch(() => {
-    //             navigate('/login');
-    //         });
-    // }, [navigate]);
+    useEffect(() => {
+        auth.isLoggedIn()
+            .then(() => {
+                // navigate('/dashboard/default');
+            })
+            .catch(() => {
+                navigate('/login');
+            });
+    }, [navigate]);
 
     return (
         <ThemeCustomization>

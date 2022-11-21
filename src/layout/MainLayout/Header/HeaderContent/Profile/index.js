@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useRef, useState } from 'react';
+import { getAuthClient } from '../../../../../utils/auth';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -28,6 +29,7 @@ import SettingTab from './SettingTab';
 // assets
 import avatar1 from 'assets/images/users/avatar-1.png';
 import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 
 // tab panel wrapper
 function TabPanel({ children, value, index, ...other }) {
@@ -55,10 +57,21 @@ function a11yProps(index) {
 
 const Profile = () => {
     const theme = useTheme();
+    const auth = getAuthClient();
+    const navigate = useNavigate();
 
     const handleLogout = async () => {
         // logout
+        auth.logout()
+            .then(() => {
+                navigate('/login');
+            })
+            .catch(() => {
+                navigate('/');
+            });
     };
+
+    const userName = auth.getUserName();
 
     const anchorRef = useRef(null);
     const [open, setOpen] = useState(false);
@@ -98,7 +111,7 @@ const Profile = () => {
             >
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ p: 0.5 }}>
                     <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
-                    <Typography variant="subtitle1">John Doe</Typography>
+                    <Typography variant="subtitle1">{userName}</Typography>
                 </Stack>
             </ButtonBase>
             <Popper
@@ -141,7 +154,7 @@ const Profile = () => {
                                                     <Stack direction="row" spacing={1.25} alignItems="center">
                                                         <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
                                                         <Stack>
-                                                            <Typography variant="h6">John Doe</Typography>
+                                                            <Typography variant="h6">{userName}</Typography>
                                                             <Typography variant="body2" color="textSecondary">
                                                                 UI/UX Designer
                                                             </Typography>
